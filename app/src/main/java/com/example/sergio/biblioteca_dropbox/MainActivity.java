@@ -1,6 +1,7 @@
 package com.example.sergio.biblioteca_dropbox;
 
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,8 +10,11 @@ import android.widget.Toast;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.android.AndroidAuthSession;
+import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     /*****************************************************/
@@ -38,8 +42,36 @@ public class MainActivity extends AppCompatActivity {
         inicializar();
         //iniciar sesión (se podría llamar a este método haciendo un boton de login, pero al ser algo trivial no se ha contemplado)
         linkToDropbox();
+        // sincronizar los archivos epub tras haber conectado
+        new Sincronizador().execute("");
+    }
+
+    class Sincronizador extends AsyncTask<String, Void, String> {
+
+        private Exception exception;
+        @Override
+        protected String doInBackground(String... params) {
+
+                try {
+                    DropboxAPI.Entry contact = mDBApi.metadata("/MyEBooks",0, null, true, null);
+                    List<DropboxAPI.Entry> CFolder = contact.contents;
+                    for (DropboxAPI.Entry entry : CFolder) {
+                        Log.i("DbExampleLog", "Filename: " + entry.fileName());}
+                } catch (DropboxException e) {
+                    e.printStackTrace();
+                }
+
+            return null;
+        }
+
+
+        protected void onPostExecute(String string) {
+
+        }
+
 
     }
+
 
     private void inicializar() {
        // AppKeyPair appKeys = new AppKeyPair(APP_KEY, APP_SECRET);
@@ -47,9 +79,10 @@ public class MainActivity extends AppCompatActivity {
         mDBApi = new DropboxAPI<AndroidAuthSession>(session);
     }
     private void linkToDropbox() {
-        if (mLoggedIn) {
-            logOut();
-        } else {
+        // Descomentar esto si quieres implementar un boton de logout
+        /*if (mLoggedIn) {
+            //logOut();
+        } else {*/
             AndroidAuthSession session = mDBApi.getSession();
             if (loadAuth(session)) {
                 showToast("Already logged in");
@@ -57,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 mDBApi.getSession().startOAuth2Authentication(MainActivity.this);
                 setLoggedIn(mDBApi.getSession().isLinked());
             }
-        }
+        //}
 
     }
 
