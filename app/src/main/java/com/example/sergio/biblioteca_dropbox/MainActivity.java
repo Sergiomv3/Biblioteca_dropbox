@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
 
     private DropboxAPI<AndroidAuthSession> mDBApi;
     private boolean mLoggedIn;
+    private boolean isVistaLista = false;
     private ArrayList<Ebook> ebooksList = null;
     private GridView gv;
     /* ESTAS STRING SON USADAS PARA GUARDAR EN SHAREDPREFERENCES*/
@@ -47,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // Instancia de vistas
         gv=(GridView)findViewById(R.id.gridView1);
-        gv.setGravity(Gravity.CENTER);
-        Bitmap epubIcon = BitmapFactory.decodeResource(this.getResources(), R.drawable.epub);
+        //gv.setGravity(Gravity.CENTER);
+        //Bitmap epubIcon = BitmapFactory.decodeResource(this.getResources(), R.drawable.epub);
 
         // método inicializar
         inicializar();
@@ -72,22 +74,32 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.vista) {
             if(gv.getNumColumns()==2){
-                gv.setNumColumns(1);
-                CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view_list, ebooksList);
-                gv.setAdapter(customGridAdapter);
-                customGridAdapter.notifyDataSetChanged();
-                gv.setGravity(Gravity.LEFT);
+                setVistaLista();
             }else {
-                gv.setNumColumns(2);
-                CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
-                gv.setAdapter(customGridAdapter);
-                customGridAdapter.notifyDataSetChanged();
-                gv.setGravity(Gravity.CENTER);
+                setVistaGrid();
             }
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setVistaGrid() {
+        this.isVistaLista = false;
+        gv.setNumColumns(2);
+        CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
+        gv.setAdapter(customGridAdapter);
+        customGridAdapter.notifyDataSetChanged();
+        gv.setGravity(Gravity.CENTER);
+    }
+
+    private void setVistaLista() {
+        this.isVistaLista = true;
+        gv.setNumColumns(1);
+        CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view_list, ebooksList);
+        gv.setAdapter(customGridAdapter);
+        customGridAdapter.notifyDataSetChanged();
+        gv.setGravity(Gravity.LEFT);
     }
 
     class Sincronizador extends AsyncTask<String, Void, String> {
@@ -130,9 +142,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         protected void onPostExecute(String string) {
-            CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
-            gv.setAdapter(customGridAdapter);
-            customGridAdapter.notifyDataSetChanged();
+
+            if(isVistaLista){
+                setVistaLista();
+
+            }else{
+                setVistaGrid();
+
+            }
+
         }
 
 
@@ -193,7 +211,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
     }
+
+
 
     private void setLoggedIn(boolean loggedIn) {
         mLoggedIn = loggedIn;
