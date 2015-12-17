@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Biblioteca_dropbox</string>
-
+    <string name="vista">Cambiar vista</string>
 </resources>

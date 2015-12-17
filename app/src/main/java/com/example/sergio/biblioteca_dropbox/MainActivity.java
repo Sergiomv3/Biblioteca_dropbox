@@ -1,5 +1,6 @@
 package com.example.sergio.biblioteca_dropbox;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -53,6 +56,38 @@ public class MainActivity extends AppCompatActivity {
         linkToDropbox();
         // sincronizar los archivos epub tras haber conectado
         new Sincronizador().execute("");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        int id = item.getItemId();
+
+
+        if (id == R.id.vista) {
+            if(gv.getNumColumns()==2){
+                gv.setNumColumns(1);
+                CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view_list, ebooksList);
+                gv.setAdapter(customGridAdapter);
+                customGridAdapter.notifyDataSetChanged();
+                gv.setGravity(Gravity.LEFT);
+            }else {
+                gv.setNumColumns(2);
+                CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
+                gv.setAdapter(customGridAdapter);
+                customGridAdapter.notifyDataSetChanged();
+                gv.setGravity(Gravity.CENTER);
+            }
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     class Sincronizador extends AsyncTask<String, Void, String> {
