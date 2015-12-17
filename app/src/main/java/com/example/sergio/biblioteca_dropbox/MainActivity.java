@@ -14,6 +14,7 @@ import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,10 +54,25 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
 
                 try {
-                    DropboxAPI.Entry contact = mDBApi.metadata("/MyEBooks",0, null, true, null);
-                    List<DropboxAPI.Entry> CFolder = contact.contents;
-                    for (DropboxAPI.Entry entry : CFolder) {
-                        Log.i("DbExampleLog", "Filename: " + entry.fileName());}
+                    DropboxAPI.Entry files = mDBApi.metadata("/MyEBooks",0, null, true, null);
+                    List<DropboxAPI.Entry> CFolder = files.contents;
+                    // FILTRAMOS LA LISTA
+                    List<DropboxAPI.Entry> CFolder_filtered = new ArrayList<DropboxAPI.Entry>();
+                    for (int i = 0; i <CFolder.size() ; i++) {
+                        String fileName = CFolder.get(i).fileName();
+                        int fileLenght = fileName.length();
+                        if(fileName.charAt(fileLenght-5) == '.' && fileName.charAt(fileLenght-4) == 'e' && fileName.charAt(fileLenght-3) == 'p' && fileName.charAt(fileLenght-2) == 'u' &&
+                                fileName.charAt(fileLenght-1) == 'b'){
+                            CFolder_filtered.add(CFolder.get(i));
+                        }
+                    }
+                    if(CFolder_filtered != null) {
+                        for (DropboxAPI.Entry entry : CFolder_filtered) {
+                            Log.i("DbExampleLog", "Filename: " + entry.fileName());
+                        }
+                    }else{
+                        Log.i("Error Filtering","List is null");
+                    }
                 } catch (DropboxException e) {
                     e.printStackTrace();
                 }
