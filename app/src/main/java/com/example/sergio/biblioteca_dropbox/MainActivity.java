@@ -8,8 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -32,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     private DropboxAPI<AndroidAuthSession> mDBApi;
     private boolean mLoggedIn;
-    private ArrayList<String> eBookNames = null;
+    private ArrayList<Ebook> ebooksList = null;
     private GridView gv;
     /* ESTAS STRING SON USADAS PARA GUARDAR EN SHAREDPREFERENCES*/
     private static final String ACCOUNT_PREFS_NAME = "prefs";
@@ -67,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
                     DropboxAPI.Entry files = mDBApi.metadata("/MyEBooks",0, null, true, null);
                     List<DropboxAPI.Entry> CFolder = files.contents;
-                    eBookNames=new ArrayList<String>();
+                    ebooksList =new ArrayList<Ebook>();
                     // FILTRAMOS LA LISTA
                     List<DropboxAPI.Entry> CFolder_filtered = new ArrayList<DropboxAPI.Entry>();
                     for (int i = 0; i <CFolder.size() ; i++) {
@@ -75,7 +73,9 @@ public class MainActivity extends AppCompatActivity {
 
                         if(fileName.endsWith(".epub")){
                             CFolder_filtered.add(CFolder.get(i));
-                            eBookNames.add(new String(CFolder.get(i).fileName()));
+                            Ebook ebook = new Ebook(CFolder.get(i).fileName(),CFolder.get(i).clientMtime);
+                            ebooksList.add(ebook);
+
                         }
                     }
                     if(CFolder_filtered != null) {
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         protected void onPostExecute(String string) {
-            CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, eBookNames);
+            CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
             gv.setAdapter(customGridAdapter);
             customGridAdapter.notifyDataSetChanged();
         }

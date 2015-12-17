@@ -14,13 +14,13 @@ import java.util.ArrayList;
 /**
  * Created by Sergio on 17/12/2015.
  */
-public class CustomGridViewAdapter extends ArrayAdapter<String> {
+public class CustomGridViewAdapter extends ArrayAdapter<Ebook> {
     Context context;
     int layoutResourceId;
-    ArrayList<String> data = new ArrayList<String>();
+    ArrayList<Ebook> data = new ArrayList<Ebook>();
 
     public CustomGridViewAdapter(Context context, int layoutResourceId,
-                                 ArrayList<String> data) {
+                                 ArrayList<Ebook> data) {
         super(context, layoutResourceId, data);
         this.layoutResourceId = layoutResourceId;
         this.context = context;
@@ -44,7 +44,7 @@ public class CustomGridViewAdapter extends ArrayAdapter<String> {
             holder = (RecordHolder) row.getTag();
         }
 
-        String s = data.get(position);
+        String s = data.get(position).getFileName();
         holder.txtTitle.setText(s);
         holder.imageItem.setImageResource(R.drawable.epub);
         return row;
