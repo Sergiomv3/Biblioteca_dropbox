@@ -10,4 +10,12 @@
     tools:context="com.example.sergio.biblioteca_dropbox.MainActivity">
 
 
+    <GridView
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:id="@+id/gridView1"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:numColumns="2"
+        android:choiceMode="none" />
 </RelativeLayout>
