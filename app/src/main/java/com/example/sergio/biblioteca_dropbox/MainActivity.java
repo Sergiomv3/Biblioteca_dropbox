@@ -1,6 +1,8 @@
 package com.example.sergio.biblioteca_dropbox;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     private DropboxAPI<AndroidAuthSession> mDBApi;
     private boolean mLoggedIn;
-    private String[] eBookNames = null;
+    private ArrayList<String> eBookNames = null;
     private GridView gv;
     /* ESTAS STRING SON USADAS PARA GUARDAR EN SHAREDPREFERENCES*/
     private static final String ACCOUNT_PREFS_NAME = "prefs";
@@ -45,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         // Instancia de vistas
         gv=(GridView)findViewById(R.id.gridView1);
         gv.setGravity(Gravity.CENTER);
+        Bitmap epubIcon = BitmapFactory.decodeResource(this.getResources(), R.drawable.epub);
 
         // método inicializar
         inicializar();
@@ -64,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
                     DropboxAPI.Entry files = mDBApi.metadata("/MyEBooks",0, null, true, null);
                     List<DropboxAPI.Entry> CFolder = files.contents;
-                    ArrayList<String> dir=new ArrayList<String>();
+                    eBookNames=new ArrayList<String>();
                     // FILTRAMOS LA LISTA
                     List<DropboxAPI.Entry> CFolder_filtered = new ArrayList<DropboxAPI.Entry>();
                     for (int i = 0; i <CFolder.size() ; i++) {
@@ -72,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
                         if(fileName.endsWith(".epub")){
                             CFolder_filtered.add(CFolder.get(i));
-                            dir.add(new String(CFolder.get(i).fileName()));
+                            eBookNames.add(new String(CFolder.get(i).fileName()));
                         }
                     }
                     if(CFolder_filtered != null) {
@@ -82,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                     }else{
                         Log.i("Error Filtering","List is null");
                     }
-                    eBookNames=dir.toArray(new String[dir.size()]);
+
                 } catch (DropboxException e) {
                     e.printStackTrace();
                 }
@@ -92,9 +95,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         protected void onPostExecute(String string) {
-            ArrayAdapter<String> ad = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, eBookNames);
-            gv.setAdapter(ad);
-            ad.notifyDataSetChanged();
+            CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, eBookNames);
+            gv.setAdapter(customGridAdapter);
+            customGridAdapter.notifyDataSetChanged();
         }
 
 
