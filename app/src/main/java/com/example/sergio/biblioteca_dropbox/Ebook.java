@@ -6,10 +6,12 @@ package com.example.sergio.biblioteca_dropbox;
 public class Ebook {
     private String fileName;
     private String modified;
+    private String path;
 
-    public Ebook(String fileName, String modified) {
+    public Ebook(String fileName, String modified, String path) {
         this.fileName = fileName;
         this.modified = modified;
+        this.path = path;
     }
 
     public String getFileName() {
@@ -20,25 +22,19 @@ public class Ebook {
         this.fileName = fileName;
     }
 
-
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Ebook ebook = (Ebook) o;
-
-        if (fileName != null ? !fileName.equals(ebook.fileName) : ebook.fileName != null)
-            return false;
-        return !(modified != null ? !modified.equals(ebook.modified) : ebook.modified != null);
-
+    public String getModified() {
+        return modified;
     }
 
-    @Override
-    public int hashCode() {
-        int result = fileName != null ? fileName.hashCode() : 0;
-        result = 31 * result + (modified != null ? modified.hashCode() : 0);
-        return result;
+    public void setModified(String modified) {
+        this.modified = modified;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

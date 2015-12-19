@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Biblioteca_dropbox</string>
     <string name="vista">Cambiar vista</string>
+    <string name="ordenar_fecha">Ordenar por fecha</string>
 </resources>

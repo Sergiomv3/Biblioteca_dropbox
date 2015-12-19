@@ -12,6 +12,8 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -33,10 +35,11 @@ public class MainActivity extends AppCompatActivity {
     final static private String APP_SECRET = "rfkesxcoouuw3br";
 
     private DropboxAPI<AndroidAuthSession> mDBApi;
-    private boolean mLoggedIn;
+    private boolean mLoggedIn = false;
     private boolean isVistaLista = false;
     private ArrayList<Ebook> ebooksList = null;
     private GridView gv;
+    private CustomGridViewAdapter customGridAdapter;
     /* ESTAS STRING SON USADAS PARA GUARDAR EN SHAREDPREFERENCES*/
     private static final String ACCOUNT_PREFS_NAME = "prefs";
     private static final String ACCESS_KEY_NAME = "ACCESS_KEY";
@@ -48,16 +51,29 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // Instancia de vistas
-        gv=(GridView)findViewById(R.id.gridView1);
+        gv = (GridView) findViewById(R.id.gridView1);
         //gv.setGravity(Gravity.CENTER);
         //Bitmap epubIcon = BitmapFactory.decodeResource(this.getResources(), R.drawable.epub);
 
         // método inicializar
         inicializar();
         //iniciar sesión (se podría llamar a este método haciendo un boton de login, pero al ser algo trivial no se ha contemplado)
+
         linkToDropbox();
         // sincronizar los archivos epub tras haber conectado
         new Sincronizador().execute("");
+
+        gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> arg0, View arg1,
+                                    int position, long id) {
+
+                String path = ebooksList.get(position).getPath();
+                //showToast(path);
+
+                return;
+            }
+
+        });
     }
 
     @Override
@@ -73,21 +89,39 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (id == R.id.vista) {
-            if(gv.getNumColumns()==2){
+            if (gv.getNumColumns() == 2) {
                 setVistaLista();
-            }else {
+            } else {
                 setVistaGrid();
             }
             return true;
+        } else if (id == R.id.ordenar_fecha) {
+            ordenarListaFecha();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void ordenarListaFecha() {
+        // Se podría implementar un compareTo en la clase Ebook
+        Ebook aux = new Ebook("", "", "");
+        for (int i = 0; i < ebooksList.size() - 1; i++) {
+            for (int j = i + 1; j < ebooksList.size(); j++) {
+                if (ebooksList.get(i).getModified().compareToIgnoreCase(ebooksList.get(j).getModified()) > 0) {
+                    aux = ebooksList.get(i);
+                    ebooksList.set(i, ebooksList.get(j));
+                    ebooksList.set(j, aux);
+                }
+            }
+
+        }
+        customGridAdapter.notifyDataSetChanged();
+    }
+
     private void setVistaGrid() {
         this.isVistaLista = false;
         gv.setNumColumns(2);
-        CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
+        customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
         gv.setAdapter(customGridAdapter);
         customGridAdapter.notifyDataSetChanged();
         gv.setGravity(Gravity.CENTER);
@@ -96,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
     private void setVistaLista() {
         this.isVistaLista = true;
         gv.setNumColumns(1);
-        CustomGridViewAdapter customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view_list, ebooksList);
+        customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view_list, ebooksList);
         gv.setAdapter(customGridAdapter);
         customGridAdapter.notifyDataSetChanged();
         gv.setGravity(Gravity.LEFT);
@@ -105,37 +139,39 @@ public class MainActivity extends AppCompatActivity {
     class Sincronizador extends AsyncTask<String, Void, String> {
 
         private Exception exception;
+
         @Override
         protected String doInBackground(String... params) {
 
-                try {
+            try {
 
-                    DropboxAPI.Entry files = mDBApi.metadata("/MyEBooks",0, null, true, null);
-                    List<DropboxAPI.Entry> CFolder = files.contents;
-                    ebooksList =new ArrayList<Ebook>();
-                    // FILTRAMOS LA LISTA
-                    List<DropboxAPI.Entry> CFolder_filtered = new ArrayList<DropboxAPI.Entry>();
-                    for (int i = 0; i <CFolder.size() ; i++) {
-                        String fileName = CFolder.get(i).fileName();
+                DropboxAPI.Entry files = mDBApi.metadata("/MyEBooks", 0, null, true, null);
+                List<DropboxAPI.Entry> CFolder = files.contents;
+                ebooksList = new ArrayList<Ebook>();
+                // FILTRAMOS LA LISTA
+                List<DropboxAPI.Entry> CFolder_filtered = new ArrayList<DropboxAPI.Entry>();
+                for (int i = 0; i < CFolder.size(); i++) {
+                    String fileName = CFolder.get(i).fileName();
 
-                        if(fileName.endsWith(".epub")){
-                            CFolder_filtered.add(CFolder.get(i));
-                            Ebook ebook = new Ebook(CFolder.get(i).fileName(),CFolder.get(i).clientMtime);
-                            ebooksList.add(ebook);
+                    if (fileName.endsWith(".epub")) {
+                        CFolder_filtered.add(CFolder.get(i));
+                        Ebook ebook = new Ebook(CFolder.get(i).fileName(), CFolder.get(i).clientMtime, CFolder.get(i).path);
 
-                        }
+                        ebooksList.add(ebook);
+
                     }
-                    if(CFolder_filtered != null) {
-                        for (DropboxAPI.Entry entry : CFolder_filtered) {
-                            Log.i("DbExampleLog", "Filename: " + entry.fileName());
-                        }
-                    }else{
-                        Log.i("Error Filtering","List is null");
-                    }
-
-                } catch (DropboxException e) {
-                    e.printStackTrace();
                 }
+                if (CFolder_filtered != null) {
+                    for (DropboxAPI.Entry entry : CFolder_filtered) {
+                        Log.i("DbExampleLog", "Filename: " + entry.fileName());
+                    }
+                } else {
+                    Log.i("Error Filtering", "List is null");
+                }
+
+            } catch (DropboxException e) {
+                e.printStackTrace();
+            }
 
             return null;
         }
@@ -143,10 +179,10 @@ public class MainActivity extends AppCompatActivity {
 
         protected void onPostExecute(String string) {
 
-            if(isVistaLista){
+            if (isVistaLista) {
                 setVistaLista();
 
-            }else{
+            } else {
                 setVistaGrid();
 
             }
@@ -158,24 +194,41 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void inicializar() {
-       // AppKeyPair appKeys = new AppKeyPair(APP_KEY, APP_SECRET);
+        // AppKeyPair appKeys = new AppKeyPair(APP_KEY, APP_SECRET);
         AndroidAuthSession session = buildSession();
         mDBApi = new DropboxAPI<AndroidAuthSession>(session);
     }
+
     private void linkToDropbox() {
         // Descomentar esto si quieres implementar un boton de logout
-        /*if (mLoggedIn) {
+
+        if (mLoggedIn) {
             //logOut();
-        } else {*/
+        } else {
             AndroidAuthSession session = mDBApi.getSession();
             if (loadAuth(session)) {
                 showToast("Already logged in");
+                setLoggedIn(mDBApi.getSession().isLinked());
             } else {
                 mDBApi.getSession().startOAuth2Authentication(MainActivity.this);
                 setLoggedIn(mDBApi.getSession().isLinked());
             }
-        //}
+        }
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putBoolean("mLoggedIn", mLoggedIn);
+
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mLoggedIn = savedInstanceState.getBoolean("mLoggedIn");
     }
 
     private void logOut() {
@@ -192,9 +245,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         AndroidAuthSession session = mDBApi.getSession();
-        if(loadAuth(session)){
+        if (loadAuth(session)) {
 
-        }else {
+        } else {
 
             if (mDBApi.getSession().authenticationSuccessful()) {
                 try {
@@ -215,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private void setLoggedIn(boolean loggedIn) {
         mLoggedIn = loggedIn;
         if (loggedIn) {
@@ -229,12 +281,14 @@ public class MainActivity extends AppCompatActivity {
             //mImage.setImageDrawable(null);
         }
     }
+
     private void clearKeys() {
         SharedPreferences prefs = getSharedPreferences(ACCOUNT_PREFS_NAME, 0);
         SharedPreferences.Editor edit = prefs.edit();
         edit.clear();
         edit.commit();
     }
+
     private void storeAuth(AndroidAuthSession session) {
         // Store the OAuth 2 access token, if there is one.
         String oauth2AccessToken = session.getOAuth2AccessToken();
@@ -276,7 +330,8 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences(ACCOUNT_PREFS_NAME, 0);
         String key = prefs.getString(ACCESS_KEY_NAME, null);
         String secret = prefs.getString(ACCESS_SECRET_NAME, null);
-        if (key == null || secret == null || key.length() == 0 || secret.length() == 0) return false;
+        if (key == null || secret == null || key.length() == 0 || secret.length() == 0)
+            return false;
 
         if (key.equals("oauth2:")) {
             // If the key is set to "oauth2:", then we can assume the token is for OAuth 2.
