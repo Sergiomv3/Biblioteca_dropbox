@@ -185,9 +185,17 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         } else if (id == R.id.ordenar_fecha) {
-            ordenarListaFecha();
+            if(ebooksList.isEmpty()){
+                showToast("NO TIENES LIBROS EPUB!");
+            }else {
+                ordenarListaFecha();
+            }
         }else if (id == R.id.ordenar_nombre){
-            ordenarListaNombre();
+            if(ebooksList.isEmpty()){
+                showToast("NO TIENES LIBROS EPUB!");
+            }else {
+                ordenarListaNombre();
+            }
         }else if(id == R.id.sincronizar){
             new Sincronizador().execute("");
         }
