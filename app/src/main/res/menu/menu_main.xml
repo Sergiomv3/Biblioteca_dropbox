@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/sincronizar" android:title="@string/sincronizar"
+        android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/vista" android:title="@string/vista"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/ordenar_fecha" android:title="@string/ordenar_fecha"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/ordenar_nombre" android:title="@string/ordenar_nombre"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/logout" android:title="@string/logout"
         android:orderInCategory="100" app:showAsAction="never" />
 </menu>

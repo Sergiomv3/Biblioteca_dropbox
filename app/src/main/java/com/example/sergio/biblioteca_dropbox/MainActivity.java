@@ -39,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
     /*        Estas son las keys de la app DropBox       */
     /*      para mayor seguridad se debería de ofuscar   */
     /*****************************************************/
-    final static private String APP_KEY = "463frntsft9g0ro";
-    final static private String APP_SECRET = "rfkesxcoouuw3br";
+    final static private String APP_KEY = "ei5460n4zsgarlt";
+    final static private String APP_SECRET = "k2gzejtvdrd5qb1";
 
     private DropboxAPI<AndroidAuthSession> mDBApi;
     private boolean mLoggedIn = false;
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         linkToDropbox();
         // sincronizar los archivos epub tras haber conectado
-        new Sincronizador().execute("");
+
 
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> arg0, View arg1,
@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showDetailActivity(String titulo, Resource portada) {
-        System.out.println("EEEE" + eBookTemp.getTitle());
+        //System.out.println("EEEE" + eBookTemp.getTitle());
         Intent mIntent = new Intent(this, Ebook_detail.class);
         mIntent.putExtra("titulo", titulo);
         try {
@@ -186,9 +186,34 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.ordenar_fecha) {
             ordenarListaFecha();
+        }else if (id == R.id.ordenar_nombre){
+            ordenarListaNombre();
+        }else if(id == R.id.sincronizar){
+            new Sincronizador().execute("");
+        }
+        else{
+            logOut();
+            finish();
         }
 
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void ordenarListaNombre() {
+        // Se podría implementar un compareTo en la clase Ebook
+        Ebook aux = new Ebook("", "", "");
+        for (int i = 0; i < ebooksList.size() - 1; i++) {
+            for (int j = i + 1; j < ebooksList.size(); j++) {
+                if (ebooksList.get(i).getFileName().compareToIgnoreCase(ebooksList.get(j).getFileName()) > 0) {
+                    aux = ebooksList.get(i);
+                    ebooksList.set(i, ebooksList.get(j));
+                    ebooksList.set(j, aux);
+                }
+            }
+
+        }
+        customGridAdapter.notifyDataSetChanged();
     }
 
     private void ordenarListaFecha() {
@@ -208,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setVistaGrid() {
-        this.isVistaLista = false;
+       this.isVistaLista = false;
         gv.setNumColumns(2);
         customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
         gv.setAdapter(customGridAdapter);
@@ -247,6 +272,7 @@ public class MainActivity extends AppCompatActivity {
                         Ebook ebook = new Ebook(CFolder.get(i).fileName(), CFolder.get(i).clientMtime, CFolder.get(i).path);
 
                         ebooksList.add(ebook);
+
 
                     }
                 }
@@ -298,6 +324,7 @@ public class MainActivity extends AppCompatActivity {
             if (loadAuth(session)) {
                 showToast("Already logged in");
                 setLoggedIn(mDBApi.getSession().isLinked());
+                new Sincronizador().execute("");
             } else {
                 mDBApi.getSession().startOAuth2Authentication(MainActivity.this);
                 setLoggedIn(mDBApi.getSession().isLinked());
@@ -345,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
                     storeAuth(session);
                     setLoggedIn(true);
                     String accessToken = mDBApi.getSession().getOAuth2AccessToken();
-
+                    new Sincronizador().execute("");
                     //Toast.makeText(this,"Login Successfull",Toast.LENGTH_SHORT).show();
                 } catch (IllegalStateException e) {
                     showToast("Couldn't authenticate with Dropbox:" + e.getLocalizedMessage());
