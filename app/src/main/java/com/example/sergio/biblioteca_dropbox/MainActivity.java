@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.dropbox.client2.DropboxAPI;
@@ -23,8 +25,18 @@ import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import nl.siegmann.epublib.domain.Book;
+import nl.siegmann.epublib.epub.EpubReader;
 
 public class MainActivity extends AppCompatActivity {
     /*****************************************************/
@@ -40,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Ebook> ebooksList = null;
     private GridView gv;
     private CustomGridViewAdapter customGridAdapter;
+    private Book eBookTemp;
     /* ESTAS STRING SON USADAS PARA GUARDAR EN SHAREDPREFERENCES*/
     private static final String ACCOUNT_PREFS_NAME = "prefs";
     private static final String ACCESS_KEY_NAME = "ACCESS_KEY";
@@ -68,13 +81,53 @@ public class MainActivity extends AppCompatActivity {
                                     int position, long id) {
 
                 String path = ebooksList.get(position).getPath();
+                String fileName = ebooksList.get(position).getFileName();
                 //showToast(path);
+                downloadDropboxFile(path);
 
                 return;
             }
 
         });
     }
+    private boolean downloadDropboxFile(String filePath) {
+        new Copy().execute(filePath);
+        return true;
+    }
+
+
+
+    class Copy extends AsyncTask<String, Void, String>{
+
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                showToast("Cargando datos... Espera por favor");
+                DropboxAPI.DropboxInputStream fd = mDBApi.getFileStream(params[0], null);
+                eBookTemp = (new EpubReader()).readEpub(fd);
+
+
+            } catch (DropboxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            //showToast(eBookTemp.getTitulo+" Titulo");
+
+
+            //Bitmap coverImage = BitmapFactory.decodeStream(eBookTemp.getCoverImage().getInputStream());
+            //ImageView iv;
+            //iv.setImageBitmap(coverImage);
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
