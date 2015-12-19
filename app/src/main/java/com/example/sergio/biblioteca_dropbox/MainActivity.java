@@ -233,21 +233,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setVistaGrid() {
-       this.isVistaLista = false;
-        gv.setNumColumns(2);
-        customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
-        gv.setAdapter(customGridAdapter);
-        customGridAdapter.notifyDataSetChanged();
-        gv.setGravity(Gravity.CENTER);
+        if(!ebooksList.isEmpty()) {
+            this.isVistaLista = false;
+            gv.setNumColumns(2);
+            customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view, ebooksList);
+            gv.setAdapter(customGridAdapter);
+            customGridAdapter.notifyDataSetChanged();
+            gv.setGravity(Gravity.CENTER);
+        }else{
+            showToast("NO TIENES LIBROS EPUB!");
+        }
     }
 
     private void setVistaLista() {
+        if(!ebooksList.isEmpty()) {
         this.isVistaLista = true;
         gv.setNumColumns(1);
         customGridAdapter = new CustomGridViewAdapter(MainActivity.this, R.layout.row_view_list, ebooksList);
         gv.setAdapter(customGridAdapter);
         customGridAdapter.notifyDataSetChanged();
         gv.setGravity(Gravity.LEFT);
+        }else{
+            showToast("NO TIENES LIBROS EPUB!");
+        }
     }
 
     class Sincronizador extends AsyncTask<String, Void, String> {
