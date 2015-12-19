@@ -1,10 +1,10 @@
 package com.example.sergio.biblioteca_dropbox;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,7 +16,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.dropbox.client2.DropboxAPI;
@@ -25,17 +24,14 @@ import com.dropbox.client2.exception.DropboxException;
 import com.dropbox.client2.session.AccessTokenPair;
 import com.dropbox.client2.session.AppKeyPair;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import nl.siegmann.epublib.domain.Book;
+import nl.siegmann.epublib.domain.Resource;
 import nl.siegmann.epublib.epub.EpubReader;
 
 public class MainActivity extends AppCompatActivity {
@@ -99,11 +95,15 @@ public class MainActivity extends AppCompatActivity {
 
     class Copy extends AsyncTask<String, Void, String>{
 
+        @Override
+        protected void onPreExecute() {
+            notificarCargando();
+        }
 
         @Override
         protected String doInBackground(String... params) {
             try {
-                showToast("Cargando datos... Espera por favor");
+
                 DropboxAPI.DropboxInputStream fd = mDBApi.getFileStream(params[0], null);
                 eBookTemp = (new EpubReader()).readEpub(fd);
 
@@ -119,15 +119,51 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
+            // ESTO DE AQUI ABAJO SERÍAN MUESTRAS PARA LA ACTIVIDAD DETALLE
             //showToast(eBookTemp.getTitulo+" Titulo");
-
-
             //Bitmap coverImage = BitmapFactory.decodeStream(eBookTemp.getCoverImage().getInputStream());
             //ImageView iv;
             //iv.setImageBitmap(coverImage);
+            showDetailActivity(eBookTemp.getTitle(),eBookTemp.getCoverImage());
+
         }
     }
 
+    private void notificarCargando() {
+        showToast("Cargando datos... Espera por favor");
+    }
+
+    private void showDetailActivity(String titulo, Resource portada) {
+        System.out.println("EEEE" + eBookTemp.getTitle());
+        Intent mIntent = new Intent(this, Ebook_detail.class);
+        mIntent.putExtra("titulo", titulo);
+        try {
+            Bitmap coverImage = BitmapFactory.decodeStream(portada.getInputStream());
+            createImageFromBitmap(coverImage);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        startActivity(mIntent);
+        //showToast("EEEE" + eBookTemp.getTitle());
+    }
+
+    public String createImageFromBitmap(Bitmap bitmap) {
+        String fileName = "myImage";//no .png or .jpg needed
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            FileOutputStream fo = openFileOutput(fileName, Context.MODE_PRIVATE);
+            fo.write(bytes.toByteArray());
+            // remember close file output
+            fo.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            fileName = null;
+        }
+        return fileName;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
