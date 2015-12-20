@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private DropboxAPI<AndroidAuthSession> mDBApi;
     private boolean mLoggedIn = false;
     private boolean isVistaLista = false;
-    private ArrayList<Ebook> ebooksList = null;
+    private ArrayList<Ebook> ebooksList = new ArrayList<Ebook>();
     private GridView gv;
     private CustomGridViewAdapter customGridAdapter;
     private Book eBookTemp;
